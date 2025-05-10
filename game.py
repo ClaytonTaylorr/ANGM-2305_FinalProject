@@ -8,7 +8,7 @@ pygame.init()
 
 pygame.display.set_caption("ANGM 2305 Final - Sidescrolling Platformer")
 
-WIDTH, HEIGHT = 1280, 720
+WIDTH, HEIGHT = 1000, 800
 FPS = 60
 PLAYER_VEL = 5
 
@@ -17,7 +17,7 @@ window = pygame.display.set_mode((WIDTH, HEIGHT))
 # calls for the background, first letting pygame know im using the assets folde and the background folde inside
 # using intigers to tile the images by multiplying its position, top left corner, to its height & width to move said tile
 def get_background(name):
-    image = pygame.image.load(join("asset", "Background", name))
+    image = pygame.image.load(join("assets", "Background", name))
     _, _, width, height, = image.get_rect()
     tiles = []
 
@@ -36,7 +36,7 @@ def draw(window, background, bg_image):
 
 def main(window):
     clock = pygame.time.Clock()
-    background = get_background("Blue_BG.png")
+    background, bg_image = get_background("Blue.png")
 
     run = True
     while run:
@@ -47,7 +47,8 @@ def main(window):
                 run = False
                 break
 
-    draw(window, background, bg_image)
+        draw(window, background, bg_image)
+    
     pygame.quit()
     quit()
 
