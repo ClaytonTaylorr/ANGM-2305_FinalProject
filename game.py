@@ -27,7 +27,7 @@ class Player(pygame.sprite.Sprite):
         self.mask = None
         self.direction = "left"
         self.animation_count = 0
-        self.fallcount = 0
+        self.fall_count = 0
     
     def move (self, dx, dy):
         self.rect.x += dx
