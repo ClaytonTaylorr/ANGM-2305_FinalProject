@@ -18,6 +18,11 @@ window = pygame.display.set_mode((WIDTH, HEIGHT))
 # using intigers to tile the images by multiplying its position, top left corner, to its height & width to move said tile
 def get_background(name):
     image = pygame.image.load(join("assets", "Background", name))
+
+    # scale inward for 16x16 pixel art, may rid of later
+    scale_factor = 4
+    image = pygame.transform.scale(image, (16 * scale_factor, 16 * scale_factor))
+
     _, _, width, height, = image.get_rect()
     tiles = []
 
