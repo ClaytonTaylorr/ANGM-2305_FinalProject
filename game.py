@@ -14,6 +14,29 @@ PLAYER_VEL = 5
 
 window = pygame.display.set_mode((WIDTH, HEIGHT))
 
+# 
+class Player(pygame.sprite.Sprite):
+    COLOR = (255,0,0)
+
+    def __init__(self,x , y, width, height):
+        self.rect = pygame.Rect(x,y, width, height)
+        # how fast player goes in said direction
+        self.x_vel = 0
+        self.y_vel = 0
+        self.mask = None
+    
+    def move (self, dx, dy):
+        self.rect.x += dx
+        self.rect.y += dy
+
+    # negative to velocity since coordinated work from left to right
+    def move_left(self, vel):
+        self.x_vel = -vel
+
+    def move_right(self, vel):
+        self.x_vel = vel
+
+
 # calls for the background, first letting pygame know im using the assets folde and the background folde inside
 # using intigers to tile the images by multiplying its position, top left corner, to its height & width to move said tile
 def get_background(name):
