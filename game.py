@@ -24,6 +24,8 @@ class Player(pygame.sprite.Sprite):
         self.x_vel = 0
         self.y_vel = 0
         self.mask = None
+        self.direction = "left"
+        self.animation_count = 0
     
     def move (self, dx, dy):
         self.rect.x += dx
@@ -32,9 +34,22 @@ class Player(pygame.sprite.Sprite):
     # negative to velocity since coordinated work from left to right
     def move_left(self, vel):
         self.x_vel = -vel
+        if self.direction != "left":
+            self.direction = "left"
+            self.animation_count = 0
 
     def move_right(self, vel):
         self.x_vel = vel
+        if self.direction != "right":
+            self.direction = "right"
+            self.animation_count = 0
+
+    # define loop to update the  movement per iteration of the loop/per frame
+    def loop(self, fps):
+        self.move(self.x_vel, self.y_vel)
+
+    def draw(self, win):
+        pygame.draw.rect(win, self.COLOR, self.rect)
 
 
 # calls for the background, first letting pygame know im using the assets folde and the background folde inside
@@ -56,15 +71,22 @@ def get_background(name):
 
     return tiles, image
 
-def draw(window, background, bg_image):
+def draw(window, background, bg_image, player):
     for tile in background:
         window.blit(bg_image, tile)
-# make sure to update the display so images dont stay rendered off screen, slowing the game down. Learned that in the matrix screensaver project
+
+    player.draw(window)
+
+    # make sure to update the display so images dont stay rendered off screen, slowing the game down. Learned that in the matrix screensaver project
     pygame.display.update()
+
+
 
 def main(window):
     clock = pygame.time.Clock()
     background, bg_image = get_background("Blue.png")
+
+    player = Player(100,100,50,50)
 
     run = True
     while run:
@@ -75,7 +97,7 @@ def main(window):
                 run = False
                 break
 
-        draw(window, background, bg_image)
+        draw(window, background, bg_image, player)
     
     pygame.quit()
     quit()
