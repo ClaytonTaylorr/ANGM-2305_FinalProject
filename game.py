@@ -76,7 +76,7 @@ class Player(pygame.sprite.Sprite):
     # subtracting by the gravity moves up since gravity is tied to a negative y velocity and the value 8 is how high I want. 
     # Gravity is always active so after the intiial jump, the player should go down immediately
     def jump(self):
-        self.y_vel = -self.GRAVITY * 8
+        self.y_vel = -self.GRAVITY * 5
         self.animation_count = 0
         self.jump_count += 1
      # a 2nd jump clears the accumulated gravity so that you can make perform a double-jump.
@@ -220,17 +220,37 @@ def handle_vertical_collision(player, objects, dy):
 
     return collided_objects
 
+def collide(player, objects, dx):
+    player.move(dx, 0)  # Only move horizontally
+    player.update()  # Update player position and mask
+    collided_object = None
+
+    for obj in objects:
+        if pygame.sprite.collide_mask(player, obj):
+            collided_object = obj
+            break
+
+    player.move(-dx, 0)  # Move back to original position after checking collision
+
+    return collided_object  # Return the collided object (if any)
 
 def handle_move(player, objects):
     keys = pygame.key.get_pressed()
-    # set player movement to zero so that they only move when key is pressed
     player.x_vel = 0
-    if keys [pygame.K_LEFT]:
+
+    # First, handle horizontal movement and check for horizontal collisions
+    collide_left = collide(player, objects, -PLAYER_VEL)
+    collide_right = collide(player, objects, PLAYER_VEL)
+
+    if keys[pygame.K_LEFT] and not collide_left:
         player.move_left(PLAYER_VEL)
-    if keys [pygame.K_RIGHT]:
+    if keys[pygame.K_RIGHT] and not collide_right:
         player.move_right(PLAYER_VEL)
 
+    # Now handle vertical collisions after horizontal movement
+    player.move(0, player.y_vel)
     handle_vertical_collision(player, objects, player.y_vel)
+    player.update()
 
 
 def main(window):
@@ -243,6 +263,9 @@ def main(window):
     # for loop adding floor that adds blocks from left to right by the block size itself so that they are evenly spaced
     floor = [Block(i * block_size, HEIGHT - block_size, block_size) 
              for i in range(-WIDTH // block_size, WIDTH * 2 // block_size)]
+    # temporarily spawned 2 blocks in the level to test horizontal collision
+    objects = [*floor, Block(0, HEIGHT - block_size * 2, block_size), 
+               Block(block_size * 3, HEIGHT - block_size * 4, block_size)]
 
     offset_x = 0
     scroll_area_width = 200    
@@ -264,10 +287,9 @@ def main(window):
 
         # call loop def from above to allow player to move
         player.loop(FPS)
-        player.update()
         # call the keybinds def to actually move said character
-        handle_move(player, floor)
-        draw(window, background, bg_image, player, floor, offset_x)
+        handle_move(player, objects)
+        draw(window, background, bg_image, player, objects, offset_x)
 
         # Screen scrolling function. If player on the right or left side of the scren by 200 pixels(area_width variable) then fix the offset, making the screen scroll
         if ((player.rect.right - offset_x >= WIDTH - scroll_area_width) and player.x_vel > 0) or (
