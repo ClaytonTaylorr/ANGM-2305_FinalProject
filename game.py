@@ -43,6 +43,13 @@ def load_sprite_sheets(dir1, dir2, width, height, direction=False):
 
     return all_sprites
 
+def get_block(size):
+    path = join("assets", "Terrain" "Terrain.png")
+    image = pygame.image.load(path).convert_alpha()
+    surface = pygame.Surface((size, size), pygame.SRCALPHA, 32)
+    # This is the location on the sprite sheet for each block, 0 is top left 96 pixels over the 2nd block starts, if need lower position modify "y" position
+    rect = pygame.Rect(96, 0, size, size)
+
 class Player(pygame.sprite.Sprite):
     COLOR = (255,0,0)
     GRAVITY = 1
@@ -113,7 +120,7 @@ class Player(pygame.sprite.Sprite):
     def draw(self, win):
         win.blit(self.sprite, (self.rect.x, self.rect.y))
 
-# Generic object class for every other sprite thats not the player
+# Generic object class for every other sprite thats not the player, defining width and heigth and location, etc for other classes
 class Object(pygame.sprite.Sprite):
     def __init__(self, x, y, width, height, name=None):
         super().__init__()
@@ -125,6 +132,15 @@ class Object(pygame.sprite.Sprite):
 
     def draw(self, win):
         win.blit(self.image, (self.rect.x, self.rect.y))
+
+
+class Block(Object):
+    def __init__(self, x, y, size):
+        super().__init__(x, y, size, size)
+        block = load_block(size)
+        self.image.blit(block, (0,0))
+        self.mask = pygame.mask.from_surface(self.image)
+
 
 # calls for the background, first letting pygame know im using the assets folde and the background folde inside
 # using intigers to tile the images by multiplying its position, top left corner, to its height & width to move said tile
