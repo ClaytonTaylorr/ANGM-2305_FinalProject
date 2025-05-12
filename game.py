@@ -49,6 +49,8 @@ def get_block(size):
     surface = pygame.Surface((size, size), pygame.SRCALPHA, 32)
     # This is the location on the sprite sheet for each block, 0 is top left 96 pixels over the 2nd block starts, if need lower position modify "y" position
     rect = pygame.Rect(96, 0, size, size)
+    surface.blit(image, (0, 0), rect)
+    return pygame.transform.scale2x(surface)
 
 class Player(pygame.sprite.Sprite):
     COLOR = (255,0,0)
@@ -137,7 +139,7 @@ class Object(pygame.sprite.Sprite):
 class Block(Object):
     def __init__(self, x, y, size):
         super().__init__(x, y, size, size)
-        block = load_block(size)
+        block = get_block(size)
         self.image.blit(block, (0,0))
         self.mask = pygame.mask.from_surface(self.image)
 
