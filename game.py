@@ -29,7 +29,7 @@ def load_sprite_sheets(dir1, dir2, width, height, direction=False):
         # Selecting only the individual frames out of the sprite sheets by multiplying by its width
         sprites = []
         for i in range(sprite_sheet.get_width() // width):
-            surface = pygame.surface((width, height), pygame.SRCALPHA, 32)
+            surface = pygame.Surface((width, height), pygame.SRCALPHA, 32)
             rect = pygame.Rect(i * width, 0, width, height)
             surface.blit(sprite_sheet, (0,0), rect)
             # Need to rid of the scale from earlier since scaling will be done here now
