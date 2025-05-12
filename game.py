@@ -48,7 +48,7 @@ def get_block(size):
     image = pygame.image.load(path).convert_alpha()
     surface = pygame.Surface((size, size), pygame.SRCALPHA, 32)
     # This is the location on the sprite sheet for each block, 0 is top left 96 pixels over the 2nd block starts, if need lower position modify "y" position
-    rect = pygame.Rect(96, 0, size, size)
+    rect = pygame.Rect(272, 64, size, size)
     surface.blit(image, (0, 0), rect)
     return pygame.transform.scale2x(surface)
 
