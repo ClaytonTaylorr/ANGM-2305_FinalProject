@@ -107,7 +107,7 @@ class Player(pygame.sprite.Sprite):
     # switch velocity once collision with the "bottom" of a piece of geometry is hit so gravity starts
     def hit_head(self):
         self.count = 0
-        self.y_vel*= -1
+        self.y_vel *= -1
 
     def update_sprite(self):
         # default sprite if no velocity is idle
@@ -238,6 +238,7 @@ def main(window):
 
         # call loop def from above to allow player to move
         player.loop(FPS)
+        player.update()
         # call the keybinds def to actually move said character
         handle_move(player, floor)
         draw(window, background, bg_image, player, floor)
