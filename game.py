@@ -49,8 +49,8 @@ class Player(pygame.sprite.Sprite):
     # using this line we can replace each directory with the location of the sprite sheet files
     #SPRITES = load_sprite_sheets(dir1, dir2, width, height)
     SPRITES = load_sprite_sheets("MainCharacter", "BlueAlien", 32, 32, True)
-    # animation delay so the sprites arent cycled through so fast
-    ANIMATION_DELAY = 5
+    # animation delay so the sprites arent cycled through so fast, lower = faster
+    ANIMATION_DELAY = 3
 
     def __init__(self,x , y, width, height):
         self.rect = pygame.Rect(x,y, width, height)
@@ -101,6 +101,12 @@ class Player(pygame.sprite.Sprite):
         sprite_index = (self.animation_count // self.ANIMATION_DELAY) % len(sprites)
         self.sprite = sprites[sprite_index]
         self.animation_count += 1
+
+    def update():
+        # creating the collision box, constantly being updated by the size of the sprite its self
+        self.rect = self.sprite.get_rect(topleft=(self.rect.x, self.rect.y))
+        # collision based off the pixels them selves on the spritesheet and not a full sized box
+        self.mask = pygame.mask.from_surface(self.sprite)
 
 
     def draw(self, win):
