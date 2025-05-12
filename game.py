@@ -46,6 +46,9 @@ def load_sprite_sheets(dir1, dir2, width, height, direction=False):
 class Player(pygame.sprite.Sprite):
     COLOR = (255,0,0)
     GRAVITY = 1
+    # using this line we can replace each directory with the location of the sprite sheet files
+    #SPRITES = load_sprite_sheets(dir1, dir2, width, height)
+    SPRITES = load_sprite_sheets("MainCharacter", "BlueAlien", 32, 32, True)
 
     def __init__(self,x , y, width, height):
         self.rect = pygame.Rect(x,y, width, height)
@@ -84,7 +87,9 @@ class Player(pygame.sprite.Sprite):
         self.fall_count += 1
 
     def draw(self, win):
-        pygame.draw.rect(win, self.COLOR, self.rect)
+        #pygame.draw.rect(win, self.COLOR, self.rect)
+        self.sprite = self.SPRITES["idle_" + self.direction][0]
+        win.blit(self.sprite, (self.rect.x, self.rect.y))
 
 
 # calls for the background, first letting pygame know im using the assets folde and the background folde inside
