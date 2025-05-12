@@ -71,6 +71,18 @@ class Player(pygame.sprite.Sprite):
         self.direction = "left"
         self.animation_count = 0
         self.fall_count = 0
+        self.jump_count = 0
+
+    # subtracting by the gravity moves up since gravity is tied to a negative y velocity and the value 8 is how high I want. 
+    # Gravity is always active so after the intiial jump, the player should go down immediately
+    def jump(self):
+        self.y_vel = -self.GRAVITY * 8
+        self.animation_count = 0
+        self.jump_count += 1
+     # a 2nd jump clears the accumulated gravity so that you can make perform a double-jump.
+        if self.jump_count == 1:
+            self.fall_count = 0
+
     
     def move (self, dx, dy):
         self.rect.x += dx
@@ -153,7 +165,6 @@ class Block(Object):
         self.image.blit(block, (0,0))
         self.mask = pygame.mask.from_surface(self.image)
 
-
 # calls for the background, first letting pygame know im using the assets folde and the background folde inside
 # using intigers to tile the images by multiplying its position, top left corner, to its height & width to move said tile
 def get_background(name):
@@ -235,6 +246,11 @@ def main(window):
             if event.type == pygame.QUIT:
                 run = False
                 break
+
+            # Only allow double jumping with the greater than 2 value
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE and player.jump_count < 2:
+                    player.jump()
 
         # call loop def from above to allow player to move
         player.loop(FPS)
