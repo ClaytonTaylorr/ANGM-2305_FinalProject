@@ -99,6 +99,16 @@ class Player(pygame.sprite.Sprite):
         self.fall_count += 1
         self.update_sprite()
 
+    # need to stop gravity once collision is made/player lands so the gravity value doesnt keep adding up. Also reset velocity to zero
+    def landed(self):
+        self.fall_count = 0
+        self.y_vel = 0
+        self.jump_count = 0
+    # switch velocity once collision with the "bottom" of a piece of geometry is hit so gravity starts
+    def hit_head(self):
+        self.count = 0
+        self.y_vel*= -1
+
     def update_sprite(self):
         # default sprite if no velocity is idle
         sprite_sheet = "idle"
@@ -175,7 +185,25 @@ def draw(window, background, bg_image, player, objects):
     # make sure to update the display so images dont stay rendered off screen, slowing the game down. Learned that in the matrix screensaver project
     pygame.display.update()
 
-def handle_move(player):
+# Simple collision block calling on the object class again including player and "geometry" using the mask if 
+def handle_vertical_collision(player, objects, dy):
+    collided_objects = []
+    for obj in objects:
+        if pygame.sprite.collide_mask(player, obj):
+            if dy > 0:
+                # using ".top" as the collision to the geometry objects and " .bottom" for bottom of objects
+                player.rect.bottom = obj.rect.top
+                player.landed()
+            elif dy < 0:
+                player.rect.top = obj.rect.bottom
+                player.hit_head()
+
+        collided_objects.append(obj)
+
+    return collided_objects
+
+
+def handle_move(player, objects):
     keys = pygame.key.get_pressed()
     # set player movement to zero so that they only move when key is pressed
     player.x_vel = 0
@@ -183,6 +211,9 @@ def handle_move(player):
         player.move_left(PLAYER_VEL)
     if keys [pygame.K_RIGHT]:
         player.move_right(PLAYER_VEL)
+
+    handle_vertical_collision(player, objects, player.y_vel)
+
 
 def main(window):
     clock = pygame.time.Clock()
@@ -208,7 +239,7 @@ def main(window):
         # call loop def from above to allow player to move
         player.loop(FPS)
         # call the keybinds def to actually move said character
-        handle_move(player)
+        handle_move(player, floor)
         draw(window, background, bg_image, player, floor)
     
     pygame.quit()
