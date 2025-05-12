@@ -148,8 +148,8 @@ class Player(pygame.sprite.Sprite):
         self.mask = pygame.mask.from_surface(self.sprite)
 
 
-    def draw(self, win):
-        win.blit(self.sprite, (self.rect.x, self.rect.y))
+    def draw(self, win, offset_x):
+        win.blit(self.sprite, (self.rect.x - offset_x, self.rect.y))
 
 # Generic object class for every other sprite thats not the player, defining width and heigth and location, etc for other classes
 class Object(pygame.sprite.Sprite):
@@ -161,8 +161,8 @@ class Object(pygame.sprite.Sprite):
         self.height = height
         self.name = name
 
-    def draw(self, win):
-        win.blit(self.image, (self.rect.x, self.rect.y))
+    def draw(self, win, offset_x):
+        win.blit(self.image, (self.rect.x - offset_x, self.rect.y))
 
 
 class Block(Object):
@@ -191,14 +191,14 @@ def get_background(name):
 
     return tiles, image
 
-def draw(window, background, bg_image, player, objects):
+def draw(window, background, bg_image, player, objects, offset_x):
     for tile in background:
         window.blit(bg_image, tile)
 
     for obj in objects:
-        obj.draw(window)
+        obj.draw(window, offset_x)
 
-    player.draw(window)
+    player.draw(window, offset_x)
 
     # make sure to update the display so images dont stay rendered off screen, slowing the game down. Learned that in the matrix screensaver project
     pygame.display.update()
@@ -244,6 +244,9 @@ def main(window):
     floor = [Block(i * block_size, HEIGHT - block_size, block_size) 
              for i in range(-WIDTH // block_size, WIDTH * 2 // block_size)]
 
+    offset_x = 0
+    scroll_area_width = 200    
+
 
     run = True
     while run:
@@ -264,7 +267,12 @@ def main(window):
         player.update()
         # call the keybinds def to actually move said character
         handle_move(player, floor)
-        draw(window, background, bg_image, player, floor)
+        draw(window, background, bg_image, player, floor, offset_x)
+
+        # Screen scrolling function. If player on the right or left side of the scren by 200 pixels(area_width variable) then fix the offset, making the screen scroll
+        if ((player.rect.right - offset_x >= WIDTH - scroll_area_width) and player.x_vel > 0) or (
+            (player.rect.left - offset_x <= scroll_area_width) and player.x_vel < 0):
+            offset_x += player.x_vel
     
     pygame.quit()
     quit()
