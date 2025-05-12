@@ -44,7 +44,7 @@ def load_sprite_sheets(dir1, dir2, width, height, direction=False):
     return all_sprites
 
 def get_block(size):
-    path = join("assets", "Terrain" "Terrain.png")
+    path = join("assets", "Terrain", "Terrain.png")
     image = pygame.image.load(path).convert_alpha()
     surface = pygame.Surface((size, size), pygame.SRCALPHA, 32)
     # This is the location on the sprite sheet for each block, 0 is top left 96 pixels over the 2nd block starts, if need lower position modify "y" position
@@ -112,7 +112,7 @@ class Player(pygame.sprite.Sprite):
         self.sprite = sprites[sprite_index]
         self.animation_count += 1
 
-    def update():
+    def update(self):
         # creating the collision box, constantly being updated by the size of the sprite its self
         self.rect = self.sprite.get_rect(topleft=(self.rect.x, self.rect.y))
         # collision based off the pixels them selves on the spritesheet and not a full sized box
@@ -163,9 +163,12 @@ def get_background(name):
 
     return tiles, image
 
-def draw(window, background, bg_image, player):
+def draw(window, background, bg_image, player, objects):
     for tile in background:
         window.blit(bg_image, tile)
+
+    for obj in objects:
+        obj.draw(window)
 
     player.draw(window)
 
@@ -185,7 +188,11 @@ def main(window):
     clock = pygame.time.Clock()
     background, bg_image = get_background("Blue.png")
 
+    block_size = 96
+
     player = Player(100,100,50,50)
+    blocks = [Block(0, HEIGHT - block_size, block_size)]
+
 
     run = True
     while run:
@@ -200,7 +207,7 @@ def main(window):
         player.loop(FPS)
         # call the keybinds def to actually move said character
         handle_move(player)
-        draw(window, background, bg_image, player)
+        draw(window, background, bg_image, player, blocks)
     
     pygame.quit()
     quit()
