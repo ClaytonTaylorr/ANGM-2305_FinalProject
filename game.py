@@ -342,6 +342,10 @@ def reload_player_if_needed(player, floor_height):
 
 def main(window):
     clock = pygame.time.Clock()
+
+    pygame.font.init()
+    win_font = pygame.font.SysFont(None, 72)
+
     background, bg_image = get_background("Blue.png")
 
     block_size = 96
@@ -349,8 +353,8 @@ def main(window):
     floor_range_end = 50
 
     # Player spawn position
-    spawn_x, spawn_y = 10, 100
-
+    spawn_x, spawn_y = block_size + 10, 100
+    win_font = pygame.font.SysFont(None, 72)
     player = Player(spawn_x, spawn_y, 50, 50)
     fire = Fire(100, HEIGHT - block_size - 64, 16, 32)
     fire.on()
@@ -374,6 +378,17 @@ def main(window):
             y = HEIGHT - block_size
             floor.append(Block(x, y, block_size))
             i += 1
+    first_block = next(
+        (b for b in floor 
+         if b.rect.x == 0 and b.rect.y == HEIGHT - block_size), None)
+    if first_block:
+        # how tall the column should be
+        stack_height = 8  
+        for n in range(1, stack_height + 1):
+            new_x = first_block.rect.x
+            new_y = first_block.rect.y - n * block_size
+            floor.append(Block(new_x, new_y, block_size))
+
 
     # Other level objects (for testing)
     objects = [*floor,
@@ -387,10 +402,22 @@ def main(window):
     collectibles = []
 
     for _ in range(num_coins):
-        # x somewhere across the level span
-        x = random.randint(0, floor_range_end * block_size)
-        # y only in bottom half of the window
-        y = random.randint(HEIGHT // 2, HEIGHT - coin_size - 10)
+        # keep picking x, y until it's free of any floor block
+        while True:
+            x = random.randint(0, floor_range_end * block_size)
+            y = random.randint(HEIGHT // 2, HEIGHT - coin_size - 10)
+            test_rect = pygame.Rect(x, y, coin_size, coin_size)
+
+            # check against every floor block
+            collision = False
+            for block in floor:
+                if test_rect.colliderect(block.rect):
+                    collision = True
+                    break
+
+            if not collision:
+                break
+
         coin = Collectible(x, y, coin_size, coin_size, "Coin.png")
         collectibles.append(coin)
         objects.append(coin)
@@ -428,7 +455,15 @@ def main(window):
         fire.loop()
         handle_move(player, objects)
         draw(window, background, bg_image, player, objects, offset_x)
-
+        # If all coins are collectied, show “You Win!”
+        if len(collectibles) == 0:
+            text_surf = win_font.render("You Win!", True, (255, 255, 255))
+            text_rect = text_surf.get_rect(center=(WIDTH // 2, HEIGHT // 2))
+            window.blit(text_surf, text_rect)
+            pygame.display.update()
+            # Optionally pause or break the loop so the player sees it:
+            pygame.time.delay(3000)
+            run = False
         # Handle screen scrolling
         if ((player.rect.right - offset_x >= WIDTH - scroll_area_width) and player.x_vel > 0) or (
             (player.rect.left - offset_x <= scroll_area_width) and player.x_vel < 0):
