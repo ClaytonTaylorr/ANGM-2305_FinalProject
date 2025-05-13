@@ -345,7 +345,9 @@ def main(window):
 
     pygame.font.init()
     win_font = pygame.font.SysFont(None, 72)
-
+    score = 0
+    score_font = pygame.font.SysFont(None, 36)
+    
     background, bg_image = get_background("Blue.png")
 
     block_size = 96
@@ -423,7 +425,7 @@ def main(window):
         objects.append(coin)
 
     offset_x = 0  # Initial camera position
-    scroll_area_width = 200
+    scroll_area_width = 400
 
     run = True
     while run:
@@ -448,6 +450,8 @@ def main(window):
             if coin.collect(player):
                 collectibles.remove(coin)
                 objects.remove(coin)
+                #adds to the score
+                score += 1
                 print("Coin collected! Remaining:", len(collectibles))
 
 
@@ -455,16 +459,21 @@ def main(window):
         fire.loop()
         handle_move(player, objects)
         draw(window, background, bg_image, player, objects, offset_x)
-        # If all coins are collectied, show “You Win!”
-        if len(collectibles) == 0:
-            text_surf = win_font.render("You Win!", True, (255, 255, 255))
-            text_rect = text_surf.get_rect(center=(WIDTH // 2, HEIGHT // 2))
+        # draw coin counter
+        score_surf = score_font.render(f"Coins collected: {score}", True, (255,255,255))
+        window.blit(score_surf, (10, 10))
+        pygame.display.update()
+
+        # show “You Win!” when all coins are collected
+        if score == num_coins:
+            text_surf = win_font.render("You Win!", True, (255,255,255))
+            text_rect = text_surf.get_rect(center=(WIDTH//2, HEIGHT//2))
             window.blit(text_surf, text_rect)
             pygame.display.update()
-            # Optionally pause or break the loop so the player sees it:
             pygame.time.delay(3000)
             run = False
-        # Handle screen scrolling
+
+        # Screen scrolling
         if ((player.rect.right - offset_x >= WIDTH - scroll_area_width) and player.x_vel > 0) or (
             (player.rect.left - offset_x <= scroll_area_width) and player.x_vel < 0):
             offset_x += player.x_vel
