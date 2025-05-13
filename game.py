@@ -358,7 +358,10 @@ def main(window):
     spawn_x, spawn_y = block_size + 10, 100
     win_font = pygame.font.SysFont(None, 72)
     player = Player(spawn_x, spawn_y, 50, 50)
+
     fire = Fire(100, HEIGHT - block_size - 64, 16, 32)
+    fire = Fire(300, HEIGHT - block_size - 64, 16, 32)
+    fire = Fire(500, HEIGHT - block_size - 64, 16, 32)
     fire.on()
 
     floor = []
@@ -395,8 +398,7 @@ def main(window):
     # Other level objects (for testing)
     objects = [*floor,
                Block(0, HEIGHT - block_size * 2, block_size),
-               Block(block_size * 3, HEIGHT - block_size * 4, block_size),
-               fire]
+               Block(block_size * 3, HEIGHT - block_size * 4, block_size),fire]
     
     # spawn coins
     coin_size = 32
@@ -478,6 +480,7 @@ def main(window):
 
         # Check if the player has fallen below the floor
         if player.rect.bottom > HEIGHT:
+
             player.reset(spawn_x, spawn_y)  # Reset the player to the spawn position
             offset_x = 0  # Reset the camera to the starting position
 
