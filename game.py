@@ -1,6 +1,7 @@
 import os
 import random
 import pygame
+import json
 from os import listdir
 from os.path import isfile, join
 pygame.init()
@@ -237,6 +238,19 @@ def get_background(name):
             tiles.append(pos)
 
     return tiles, image
+
+# Function to load the level data from a JSON file
+def load_level(filename):
+    try:
+        with open(filename, 'r') as file:
+            level_data = json.load(file)
+        return level_data
+    except FileNotFoundError:
+        print(f"Level file '{filename}' not found.")
+        return None
+    except json.JSONDecodeError:
+        print(f"Error decoding JSON from file '{filename}'.")
+        return None
 
 def draw(window, background, bg_image, player, objects, offset_x):
     for tile in background:
