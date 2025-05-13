@@ -118,6 +118,7 @@ class Player(pygame.sprite.Sprite):
             self.hit_count += 1
         if self.hit_count > fps * 2:
             self.hit = False
+            self.hit_count = 0
 
         self.fall_count += 1
         self.update_sprite()
@@ -262,7 +263,7 @@ def handle_vertical_collision(player, objects, dy):
                 player.rect.top = obj.rect.bottom
                 player.hit_head()
 
-        collided_objects.append(obj)
+            collided_objects.append(obj)
 
     return collided_objects
 
