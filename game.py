@@ -1,7 +1,6 @@
 import os
 import random
 import pygame
-import json
 from os import listdir
 from os.path import isfile, join
 pygame.init()
@@ -239,19 +238,6 @@ def get_background(name):
 
     return tiles, image
 
-# Function to load the level data from a JSON file
-def load_level(filename):
-    try:
-        with open(filename, 'r') as file:
-            level_data = json.load(file)
-        return level_data
-    except FileNotFoundError:
-        print(f"Level file '{filename}' not found.")
-        return None
-    except json.JSONDecodeError:
-        print(f"Error decoding JSON from file '{filename}'.")
-        return None
-
 def draw(window, background, bg_image, player, objects, offset_x):
     for tile in background:
         window.blit(bg_image, tile)
@@ -327,12 +313,16 @@ def main(window):
 
     block_size = 96
 
-    player = Player(100,100,50,50)
+    player = Player(10,100,50,50)
     fire = Fire(100, HEIGHT - block_size - 64, 16, 32)
     fire.on()
+
+    # Define positions (indices) where holes should exist
+    hole_indices = {5, 6, 15, 16, 25}  # Add or remove to change hole locations
     # for loop adding floor that adds blocks from left to right by the block size itself so that they are evenly spaced
     floor = [Block(i * block_size, HEIGHT - block_size, block_size) 
-             for i in range(-WIDTH // block_size, WIDTH * 2 // block_size)]
+             for i in range(-WIDTH // block_size, WIDTH * 2 // block_size)
+             if i not in hole_indices]
     # temporarily spawned 2 blocks in the level to test horizontal collision
     objects = [*floor, Block(0, HEIGHT - block_size * 2, block_size), 
                Block(block_size * 3, HEIGHT - block_size * 4, block_size), fire]
