@@ -440,7 +440,6 @@ def main(window):
                     player.jump()
                 # Add this line to reset player and camera on 'R' key press
                 if event.key == pygame.K_r:
-                    print("R key pressed: Resetting player and camera.")
                     # Reset the player to the spawn position
                     player.reset(spawn_x, spawn_y)  
                     # Reset the camera to its starting position
@@ -452,7 +451,6 @@ def main(window):
                 objects.remove(coin)
                 #adds to the score
                 score += 1
-                print("Coin collected! Remaining:", len(collectibles))
 
 
         player.loop(FPS)
@@ -480,7 +478,6 @@ def main(window):
 
         # Check if the player has fallen below the floor
         if player.rect.bottom > HEIGHT:
-            print("Player has fallen below the floor and has been reset.")
             player.reset(spawn_x, spawn_y)  # Reset the player to the spawn position
             offset_x = 0  # Reset the camera to the starting position
 
