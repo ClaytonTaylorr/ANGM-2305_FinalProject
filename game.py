@@ -311,34 +311,44 @@ def main(window):
     clock = pygame.time.Clock()
     background, bg_image = get_background("Blue.png")
 
+    # Constants
     block_size = 96
-
-    player = Player(10,100,50,50)
-    fire = Fire(100, HEIGHT - block_size - 64, 16, 32)
-    fire.on()
-
-    # Create the floor with some random holes
     floor_range_start = -10
     floor_range_end = 50
 
+    player = Player(10, 100, 50, 50)
+    fire = Fire(100, HEIGHT - block_size - 64, 16, 32)
+    fire.on()
+
+    # === FLOOR GENERATION WITH HOLES ===
     floor = []
     i = floor_range_start
+
     while i < floor_range_end:
         if random.random() < 0.15:
             hole_width = random.randint(1, 3)
+
+            if hole_width == 3:
+                # Add a "bridge" block in the middle of the 3-block-wide hole
+                bridge_x = (i + 1) * block_size
+                bridge_y = HEIGHT - block_size - block_size
+                floor.append(Block(bridge_x, bridge_y, block_size))
+
             i += hole_width
         else:
             x = i * block_size
-            floor.append(Block(x, HEIGHT - block_size, block_size))
+            y = HEIGHT - block_size
+            floor.append(Block(x, y, block_size))
             i += 1
-            
-    # temporarily spawned 2 blocks in the level to test horizontal collision
-    objects = [*floor, Block(0, HEIGHT - block_size * 2, block_size), 
-               Block(block_size * 3, HEIGHT - block_size * 4, block_size), fire]
+
+    # Other level objects (for testing)
+    objects = [*floor,
+               Block(0, HEIGHT - block_size * 2, block_size),
+               Block(block_size * 3, HEIGHT - block_size * 4, block_size),
+               fire]
 
     offset_x = 0
-    scroll_area_width = 200    
-
+    scroll_area_width = 200
 
     run = True
     while run:
@@ -348,24 +358,20 @@ def main(window):
             if event.type == pygame.QUIT:
                 run = False
                 break
-
-            # Only allow double jumping with the greater than 2 value
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE and player.jump_count < 2:
                     player.jump()
 
-        # call loop def from above to allow player to move
         player.loop(FPS)
         fire.loop()
-        # call the keybinds def to actually move said character
         handle_move(player, objects)
         draw(window, background, bg_image, player, objects, offset_x)
 
-        # Screen scrolling function. If player on the right or left side of the scren by 200 pixels(area_width variable) then fix the offset, making the screen scroll
+        # Handle screen scrolling
         if ((player.rect.right - offset_x >= WIDTH - scroll_area_width) and player.x_vel > 0) or (
             (player.rect.left - offset_x <= scroll_area_width) and player.x_vel < 0):
             offset_x += player.x_vel
-    
+
     pygame.quit()
     quit()
 
