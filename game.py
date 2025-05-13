@@ -156,6 +156,15 @@ class Player(pygame.sprite.Sprite):
         self.animation_count += 1
         self.update()
 
+        # reset player position after falling
+    def reset(self, x, y):
+        self.rect.x = x
+        self.rect.y = y
+        self.x_vel = 0
+        self.y_vel = 0
+        self.jump_count = 0
+        self.fall_count = 0
+
     def update(self):
         # creating the collision box, constantly being updated by the size of the sprite its self
         self.rect = self.sprite.get_rect(topleft=(self.rect.x, self.rect.y))
@@ -218,6 +227,20 @@ class Fire(Object):
         # reset animation count instead of infinitely building up and up
         if self.animation_count // self.ANIMATION_DELAY > len(sprites):
             self.animation_count = 0
+
+# coin collectible class
+class Collectible(Object):
+    def __init__(self, x, y, width, height, image):
+        super().__init__(x, y, width, height, name="coin")
+        sprite = pygame.image.load(join("assets", "Items", image)).convert_alpha()
+        sprite = pygame.transform.scale(sprite, (width, height))
+        self.image.blit(sprite, (0, 0))
+        # you can keep the mask around if you want—but it won't be used here
+        self.mask = pygame.mask.from_surface(self.image)
+
+    def collect(self, player):
+        # simple rect-based overlap
+        return self.rect.colliderect(player.rect)
 
 # calls for the background, first letting pygame know im using the assets folde and the background folde inside
 # using intigers to tile the images by multiplying its position, top left corner, to its height & width to move said tile
@@ -306,21 +329,32 @@ def handle_move(player, objects):
     handle_vertical_collision(player, objects, player.y_vel)
     player.update()
 
+def reload_player_if_needed(player, floor_height):
+    # Check if the player falls below the floor terrain
+    if player.rect.bottom > HEIGHT:  # If player goes below the floor
+        # Reset the player's position to a start
+        player.rect.x = 10
+        player.rect.y = 100
+        player.y_vel = 0
+        player.fall_count = 0
+        player.jump_count = 0
+        print("Player has fallen below the floor and has been reset.")
 
 def main(window):
     clock = pygame.time.Clock()
     background, bg_image = get_background("Blue.png")
 
-    # Constants
     block_size = 96
     floor_range_start = -10
     floor_range_end = 50
 
-    player = Player(10, 100, 50, 50)
+    # Player spawn position
+    spawn_x, spawn_y = 10, 100
+
+    player = Player(spawn_x, spawn_y, 50, 50)
     fire = Fire(100, HEIGHT - block_size - 64, 16, 32)
     fire.on()
 
-    # === FLOOR GENERATION WITH HOLES ===
     floor = []
     i = floor_range_start
 
@@ -329,7 +363,7 @@ def main(window):
             hole_width = random.randint(1, 3)
 
             if hole_width == 3:
-                # Add a "bridge" block in the middle of the 3-block-wide hole
+                # Add a "bridge" block in the middle of the 3 block wide hole
                 bridge_x = (i + 1) * block_size
                 bridge_y = HEIGHT - block_size - block_size
                 floor.append(Block(bridge_x, bridge_y, block_size))
@@ -346,8 +380,22 @@ def main(window):
                Block(0, HEIGHT - block_size * 2, block_size),
                Block(block_size * 3, HEIGHT - block_size * 4, block_size),
                fire]
+    
+    # spawn coins
+    coin_size = 32
+    num_coins = 6
+    collectibles = []
 
-    offset_x = 0
+    for _ in range(num_coins):
+        # x somewhere across the level span
+        x = random.randint(0, floor_range_end * block_size)
+        # y only in bottom half of the window
+        y = random.randint(HEIGHT // 2, HEIGHT - coin_size - 10)
+        coin = Collectible(x, y, coin_size, coin_size, "Coin.png")
+        collectibles.append(coin)
+        objects.append(coin)
+
+    offset_x = 0  # Initial camera position
     scroll_area_width = 200
 
     run = True
@@ -361,6 +409,20 @@ def main(window):
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE and player.jump_count < 2:
                     player.jump()
+                # Add this line to reset player and camera on 'R' key press
+                if event.key == pygame.K_r:
+                    print("R key pressed: Resetting player and camera.")
+                    # Reset the player to the spawn position
+                    player.reset(spawn_x, spawn_y)  
+                    # Reset the camera to its starting position
+                    offset_x = 0  
+
+        for coin in collectibles[:]:
+            if coin.collect(player):
+                collectibles.remove(coin)
+                objects.remove(coin)
+                print("Coin collected! Remaining:", len(collectibles))
+
 
         player.loop(FPS)
         fire.loop()
@@ -371,6 +433,12 @@ def main(window):
         if ((player.rect.right - offset_x >= WIDTH - scroll_area_width) and player.x_vel > 0) or (
             (player.rect.left - offset_x <= scroll_area_width) and player.x_vel < 0):
             offset_x += player.x_vel
+
+        # Check if the player has fallen below the floor
+        if player.rect.bottom > HEIGHT:
+            print("Player has fallen below the floor and has been reset.")
+            player.reset(spawn_x, spawn_y)  # Reset the player to the spawn position
+            offset_x = 0  # Reset the camera to the starting position
 
     pygame.quit()
     quit()
