@@ -72,6 +72,8 @@ class Player(pygame.sprite.Sprite):
         self.animation_count = 0
         self.fall_count = 0
         self.jump_count = 0
+        self.hit = False
+        self.hit_count = 0
 
     # subtracting by the gravity moves up since gravity is tied to a negative y velocity and the value 8 is how high I want. 
     # Gravity is always active so after the intiial jump, the player should go down immediately
@@ -87,6 +89,10 @@ class Player(pygame.sprite.Sprite):
     def move (self, dx, dy):
         self.rect.x += dx
         self.rect.y += dy
+
+    def make_hit(self):
+        self.hit = True
+        self.hit_count = 0
 
     # negative to velocity since coordinated work from left to right
     def move_left(self, vel):
@@ -108,6 +114,11 @@ class Player(pygame.sprite.Sprite):
         self.y_vel += min(1, (self.fall_count / fps) * self.GRAVITY)
         self.move(self.x_vel, self.y_vel)
 
+        if self.hit:
+            self.hit_count += 1
+        if self.hit_count > fps * 2:
+            self.hit = False
+
         self.fall_count += 1
         self.update_sprite()
 
@@ -124,6 +135,8 @@ class Player(pygame.sprite.Sprite):
     def update_sprite(self):
         # default sprite if no velocity is idle
         sprite_sheet = "idle"
+        if self.hit:
+            sprite_sheet = "hit"
         if self.y_vel < 0:
             if self.jump_count == 1:
                 sprite_sheet = "jump"
@@ -140,6 +153,7 @@ class Player(pygame.sprite.Sprite):
         sprite_index = (self.animation_count // self.ANIMATION_DELAY) % len(sprites)
         self.sprite = sprites[sprite_index]
         self.animation_count += 1
+        self.update()
 
     def update(self):
         # creating the collision box, constantly being updated by the size of the sprite its self
@@ -171,6 +185,38 @@ class Block(Object):
         block = get_block(size)
         self.image.blit(block, (0,0))
         self.mask = pygame.mask.from_surface(self.image)
+
+# An object that is "fire" but can be used and iterated on to make other traps for the player
+class Fire(Object):
+    ANIMATION_DELAY = 3
+
+    def __init__(self, x, y, width, height):
+        super().__init__(x, y, width, height, "fire")
+        self.fire = load_sprite_sheets("Traps", "Fire", width, height)
+        self.mask = pygame.mask.from_surface(self.image)
+        self.animation_count = 0
+        self.animation_name = "off"
+
+    def on(self):
+        self.animation_name = "on"
+    
+    def off(self):
+        self.animation_name = "off"
+
+    def loop(self):
+        sprites = self.fire[self.animation_name + "_right"]
+        # sprite delayed conected to the length of the sprite sheets themselves, to show each sprite in a timely manner
+        sprite_index = (self.animation_count // 
+                        self.ANIMATION_DELAY) % len(sprites)
+        self.image = sprites[sprite_index]
+        self.animation_count += 1
+
+        self.rect = self.image.get_rect(topleft=(self.rect.x, self.rect.y))
+        self.mask = pygame.mask.from_surface(self.image)
+
+        # reset animation count instead of infinitely building up and up
+        if self.animation_count // self.ANIMATION_DELAY > len(sprites):
+            self.animation_count = 0
 
 # calls for the background, first letting pygame know im using the assets folde and the background folde inside
 # using intigers to tile the images by multiplying its position, top left corner, to its height & width to move said tile
@@ -247,6 +293,13 @@ def handle_move(player, objects):
     if keys[pygame.K_RIGHT] and not collide_right:
         player.move_right(PLAYER_VEL)
 
+    vertical_collide = handle_vertical_collision(player, objects, player.y_vel)
+    to_check = [collide_left, collide_right, *vertical_collide]
+    for obj in to_check:
+        if obj and obj.name == "fire":
+            player.make_hit()
+
+
     # Now handle vertical collisions after horizontal movement
     player.move(0, player.y_vel)
     handle_vertical_collision(player, objects, player.y_vel)
@@ -260,12 +313,14 @@ def main(window):
     block_size = 96
 
     player = Player(100,100,50,50)
+    fire = Fire(100, HEIGHT - block_size - 64, 16, 32)
+    fire.on()
     # for loop adding floor that adds blocks from left to right by the block size itself so that they are evenly spaced
     floor = [Block(i * block_size, HEIGHT - block_size, block_size) 
              for i in range(-WIDTH // block_size, WIDTH * 2 // block_size)]
     # temporarily spawned 2 blocks in the level to test horizontal collision
     objects = [*floor, Block(0, HEIGHT - block_size * 2, block_size), 
-               Block(block_size * 3, HEIGHT - block_size * 4, block_size)]
+               Block(block_size * 3, HEIGHT - block_size * 4, block_size), fire]
 
     offset_x = 0
     scroll_area_width = 200    
@@ -287,6 +342,7 @@ def main(window):
 
         # call loop def from above to allow player to move
         player.loop(FPS)
+        fire.loop()
         # call the keybinds def to actually move said character
         handle_move(player, objects)
         draw(window, background, bg_image, player, objects, offset_x)
