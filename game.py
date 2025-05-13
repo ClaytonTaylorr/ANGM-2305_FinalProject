@@ -317,12 +317,21 @@ def main(window):
     fire = Fire(100, HEIGHT - block_size - 64, 16, 32)
     fire.on()
 
-    # Define positions (indices) where holes should exist
-    hole_indices = {5, 6, 15, 16, 25}  # Add or remove to change hole locations
-    # for loop adding floor that adds blocks from left to right by the block size itself so that they are evenly spaced
-    floor = [Block(i * block_size, HEIGHT - block_size, block_size) 
-             for i in range(-WIDTH // block_size, WIDTH * 2 // block_size)
-             if i not in hole_indices]
+    # Create the floor with some random holes
+    floor_range_start = -10
+    floor_range_end = 50
+
+    floor = []
+    i = floor_range_start
+    while i < floor_range_end:
+        if random.random() < 0.15:
+            hole_width = random.randint(1, 3)
+            i += hole_width
+        else:
+            x = i * block_size
+            floor.append(Block(x, HEIGHT - block_size, block_size))
+            i += 1
+            
     # temporarily spawned 2 blocks in the level to test horizontal collision
     objects = [*floor, Block(0, HEIGHT - block_size * 2, block_size), 
                Block(block_size * 3, HEIGHT - block_size * 4, block_size), fire]
